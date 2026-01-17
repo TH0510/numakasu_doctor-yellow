@@ -542,6 +542,31 @@
                 padding: 25px 60px;
             }
         }
+
+        /* iPhone13横画面で1画面に収まるように調整 */
+        @media screen and (max-width: 900px) and (orientation: landscape) {
+            html {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            
+            body {
+                padding: 0;
+                min-width: 1200px;
+                width: 1200px;
+                overflow-x: hidden;
+                overflow-y: auto;
+                transform: scale(0.7);
+                transform-origin: top left;
+                min-height: calc(100vh / 0.7);
+            }
+            
+            .container {
+                width: 1200px;
+                min-width: 1200px;
+                max-width: 1200px;
+            }
+        }
     </style>
 </head>
 <body>
