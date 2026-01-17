@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ヌマーカステン クイズ</title>
     <style>
         * {
@@ -21,17 +21,24 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: flex-start;
             padding: 20px;
+            overflow-x: auto;
+            overflow-y: auto;
+            width: 100%;
+            min-width: 1200px;
         }
 
         .container {
             background: transparent;
             border-radius: 20px;
             padding: 40px;
+            width: 1200px;
+            min-width: 1200px;
             max-width: 1200px;
-            width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .container.has-quiz-content {
@@ -351,8 +358,6 @@
             transform: translateY(-50%);
             width: 200px;
             height: 200px;
-            border: 12px solid #f44336;
-            border-radius: 50%;
             display: none;
             align-items: center;
             justify-content: center;
@@ -384,16 +389,17 @@
 
         .answer-number {
             position: absolute;
-            left: 150px;
+            left: 70px;
             top: 50%;
             transform: translateY(-50%);
             display: none;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
             z-index: 10;
             animation: popIn 0.5s ease-out;
             font-size: 120px;
             font-weight: bold;
+            width: 120px;
         }
 
         .answer-number.show {
@@ -441,6 +447,29 @@
             transform: scale(1.05);
         }
 
+        .retry-button {
+            display: none;
+            margin: 30px auto 0;
+            padding: 15px 40px;
+            font-size: 1.5em;
+            font-weight: bold;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .retry-button:hover {
+            background: #d32f2f;
+            transform: scale(1.05);
+        }
+
+        .retry-button.show {
+            display: block;
+        }
+
         .score {
             text-align: center;
             font-size: 1.2em;
@@ -454,7 +483,7 @@
             padding: 30px 80px;
             font-size: 2em;
             font-weight: bold;
-            background: #667eea;
+            background: #ff9800;
             color: white;
             border: none;
             border-radius: 30px;
@@ -464,7 +493,7 @@
         }
 
         .start-button:hover {
-            background: #764ba2;
+            background: #f57c00;
             transform: scale(1.1);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
         }
@@ -475,6 +504,43 @@
 
         .quiz-content.show {
             display: block;
+        }
+
+        /* モバイルでもPCと同じ配置で表示（固定幅1200px） */
+        @media screen and (max-width: 1200px) {
+            html {
+                overflow-x: auto;
+            }
+            
+            body {
+                padding: 10px;
+                min-width: 1200px;
+            }
+            
+            .container {
+                padding: 30px;
+            }
+        }
+
+        /* iPhone向けの最適化 */
+        @media screen and (max-width: 480px) {
+            html {
+                overflow-x: auto;
+            }
+            
+            body {
+                padding: 5px;
+                min-width: 1200px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .start-button {
+                font-size: 1.5em;
+                padding: 25px 60px;
+            }
         }
     </style>
 </head>
@@ -492,6 +558,8 @@
             <div class="route-map" id="routeMap"></div>
             
             <div class="result" id="result"></div>
+            
+            <button class="retry-button" id="retryButton">もういっかい！</button>
             
             <button class="new-quiz-button" id="newQuizButton" style="display: none;">新しいクイズ</button>
         </div>
@@ -563,6 +631,11 @@
             document.getElementById('result').textContent = '';
             document.getElementById('result').className = 'result';
             document.getElementById('newQuizButton').style.display = 'none';
+            // 「もういっかい！」ボタンを非表示
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.classList.remove('show');
+            }
             
             // 問題番号を更新（非表示）
             document.getElementById('question').textContent = '';
@@ -845,10 +918,11 @@
                     generateQuiz();
                 }, 2000);
             } else {
-                // 不正解の場合は電車を進めず、2秒後に新しい問題を出す
-                setTimeout(() => {
-                    generateQuiz();
-                }, 2000);
+                // 不正解の場合は「もういっかい！」ボタンを表示
+                const retryButton = document.getElementById('retryButton');
+                if (retryButton) {
+                    retryButton.classList.add('show');
+                }
             }
         }
 
@@ -987,8 +1061,9 @@
                 }
                 const utterance = new SpeechSynthesisUtterance(announcement);
                 utterance.lang = 'ja-JP';
-                utterance.rate = 0.85; // 自然な速度（電車アナウンス風）
-                utterance.pitch = 0.4; // 自然な男性の声のピッチ
+                // iPhoneでもパソコンと同じように聞こえるように設定
+                utterance.rate = 1.0; // 標準速度
+                utterance.pitch = 1.0; // 標準ピッチ
                 utterance.volume = 1.0;
                 
                 // より自然な音声を選択
@@ -1019,6 +1094,14 @@
                 // 音声リストが読み込まれた
             };
         }
+
+        // 「もういっかい！」ボタンのイベント
+        document.getElementById('retryButton').onclick = function() {
+            // ボタンを非表示
+            this.classList.remove('show');
+            // 次の問題に進む
+            generateQuiz();
+        };
 
         // 新しいクイズボタンのイベント
         document.getElementById('newQuizButton').onclick = function() {
