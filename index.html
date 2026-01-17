@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ヌマーカステン クイズ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3)), url('ドクターイエロー写真.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        .container {
+            background: transparent;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .container.has-quiz-content {
+            background: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .question {
+            text-align: center;
+            font-size: 1.5em;
+            color: #555;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .trains-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            min-height: 150px;
+            position: relative;
+        }
+
+        .garage-wrapper {
+            position: relative;
+            border: none;
+            border-radius: 0;
+            background: #d4d4d4;
+            padding: 15px;
+            padding-top: 30px;
+            padding-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 19px,
+                #c0c0c0 19px,
+                #c0c0c0 20px
+            );
+        }
+
+        .garage-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #4a5568;
+            clip-path: polygon(0 100%, 50% 0%, 100% 100%);
+            z-index: 1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .garage-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            right: 0;
+            height: 15px;
+            background: #3a3a3a;
+            z-index: 1;
+        }
+
+        .garage-windows {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .garage-window {
+            width: 30px;
+            height: 20px;
+            background: #87ceeb;
+            border: 2px solid #5a9fd4;
+            border-radius: 2px;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .garage-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 0;
+        }
+
+        .train-row {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-start;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .train-slot {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            background: white;
+        }
+
+        .train {
+            width: 100px;
+            height: auto;
+            display: block;
+        }
+
+        .train:not(.lead-train) {
+            width: 90px;
+        }
+
+        .empty-slot {
+            background: #fafafa;
+        }
+
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .number-button {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .number-button:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .number-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .route-map {
+            width: 100%;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .route-line {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 60px;
+        }
+
+        .route-line-container {
+            position: relative;
+        }
+
+        .route-line::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #f44336;
+            z-index: 1;
+        }
+
+        .station {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .station-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #f44336;
+            margin-bottom: 8px;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .station.current {
+            background: #f44336;
+            box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+            transform: scale(1.3);
+        }
+
+        .station.passed {
+            background: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .station-name {
+            font-size: 1.2em;
+            color: #333;
+            text-align: center;
+            writing-mode: vertical-rl;
+            line-height: 1.2;
+            max-width: 30px;
+            font-weight: bold;
+        }
+
+        .train-on-route {
+            position: absolute;
+            top: -25px;
+            left: 0%;
+            width: 60px;
+            height: auto;
+            z-index: 10;
+            transition: left 2s ease-in-out;
+            animation: trainShake 0.3s ease-in-out infinite;
+            transform: translateX(-50%);
+        }
+
+        .train-on-route.moving {
+            animation: trainShake 0.3s ease-in-out infinite, trainMove 2s ease-in-out;
+        }
+
+        @keyframes trainShake {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0px) rotate(0deg);
+            }
+            25% {
+                transform: translateX(-50%) translateY(-2px) rotate(-1deg);
+            }
+            50% {
+                transform: translateX(-50%) translateY(0px) rotate(0deg);
+            }
+            75% {
+                transform: translateX(-50%) translateY(2px) rotate(1deg);
+            }
+        }
+
+        .result {
+            text-align: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .result.correct {
+            color: #4caf50;
+            background: #e8f5e9;
+        }
+
+        .result.incorrect {
+            color: #f44336;
+            background: #ffebee;
+        }
+
+        .correct-mark {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 200px;
+            border: 12px solid #4caf50;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            animation: popIn 0.5s ease-out;
+        }
+
+        .correct-mark.show {
+            display: flex;
+        }
+
+        .incorrect-mark {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+            height: 200px;
+            border: 12px solid #f44336;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            animation: popIn 0.5s ease-out;
+        }
+
+        .incorrect-mark.show {
+            display: flex;
+        }
+
+        .incorrect-mark::before,
+        .incorrect-mark::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 12px;
+            background: #f44336;
+            border-radius: 6px;
+        }
+
+        .incorrect-mark::before {
+            transform: rotate(45deg);
+        }
+
+        .incorrect-mark::after {
+            transform: rotate(-45deg);
+        }
+
+        .answer-number {
+            position: absolute;
+            left: 150px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            animation: popIn 0.5s ease-out;
+            font-size: 120px;
+            font-weight: bold;
+        }
+
+        .answer-number.show {
+            display: flex;
+        }
+
+        .answer-number.correct {
+            color: #4caf50;
+        }
+
+        .answer-number.incorrect {
+            color: #f44336;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translateY(-50%) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-50%) scale(1.1);
+            }
+            100% {
+                transform: translateY(-50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .new-quiz-button {
+            display: block;
+            margin: 30px auto 0;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .new-quiz-button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .start-button {
+            display: block;
+            margin: 50px auto 0;
+            padding: 30px 80px;
+            font-size: 2em;
+            font-weight: bold;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-button:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .quiz-content {
+            display: none;
+        }
+
+        .quiz-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="start-button" id="startButton">ゆうちゃん電車スタート！</button>
+        
+        <div class="quiz-content" id="quizContent">
+            <div class="question" id="question"></div>
+            
+            <div class="trains-container" id="trainsContainer"></div>
+            
+            <div class="buttons-container" id="buttonsContainer"></div>
+            
+            <div class="route-map" id="routeMap"></div>
+            
+            <div class="result" id="result"></div>
+            
+            <button class="new-quiz-button" id="newQuizButton" style="display: none;">新しいクイズ</button>
+        </div>
+    </div>
+
+    <script>
+        let currentAnswer = 0;
+        let correctCount = 0;
+        let totalCount = 0;
+        let currentQuestionIndex = 0;
+
+        // 1～10の数字をシャッフル
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        const stations = [
+            '太秦天神川', '西大路御池', '二条', '二条城前', '烏丸御池', 
+            '京都市役所前', '三条京阪', '東山', '蹴上', '御陵', 
+            '山科', '東野', '椥辻', '小野', '醍醐', '石田', '六地蔵'
+        ];
+        const stationReadings = [
+            'うずまさてんじんがわ', 'にしおおじおいけ', 'にじょう', 'にじょうじょうまえ', 'からすまおいけ',
+            'きょうとしやくしょまえ', 'さんじょうけいはん', 'ひがしやま', 'けあげ', 'みささぎ',
+            'やましな', 'ひがしの', 'なぎつじ', 'おの', 'だいご', 'いしだ', 'ろくじぞう'
+        ];
+        const totalQuestions = 17;
+
+        let previousAnswer = 0;
+
+        function initializeQuestions() {
+            currentQuestionIndex = 0;
+            correctCount = 0;
+            totalCount = 0;
+            previousAnswer = 0;
+        }
+
+        function generateQuiz() {
+            // 最初の問題の場合、問題を初期化
+            if (currentQuestionIndex === 0 && correctCount === 0) {
+                initializeQuestions();
+            }
+            
+            // 六地蔵に到着したら終了（前の駅に戻らない）
+            if (currentQuestionIndex >= stations.length - 1) {
+                // 終了処理（新しい問題を出さない）
+                return;
+            }
+            
+            // 1～10の数字からランダムに選ぶ（前回と同じ数字は選ばない）
+            let newAnswer;
+            do {
+                newAnswer = Math.floor(Math.random() * 10) + 1;
+            } while (newAnswer === previousAnswer);
+            
+            currentAnswer = newAnswer;
+            previousAnswer = newAnswer;
+            const trainCount = currentAnswer;
+            
+            // 電車を表示
+            displayTrains(trainCount);
+            
+            // 結果をリセット
+            document.getElementById('result').textContent = '';
+            document.getElementById('result').className = 'result';
+            document.getElementById('newQuizButton').style.display = 'none';
+            
+            // 問題番号を更新（非表示）
+            document.getElementById('question').textContent = '';
+            
+            // 路線図を更新
+            updateRouteMap();
+            
+            // 1問目の場合は「にしおおじおいけえき」をアナウンス
+            if (currentQuestionIndex === 0) {
+                // 少し遅延させて確実にアナウンスを流す
+                setTimeout(() => {
+                    announceNextStation(stationReadings[1]);
+                }, 300);
+            } else if (currentQuestionIndex === 16) {
+                // 16問目を正解した時（currentQuestionIndexが16）、最後の駅（ろくじぞう）のアナウンス
+                announceNextStation('ろくじぞう');
+            } else if (currentQuestionIndex + 1 < stations.length) {
+                // 2問目以降は次の駅をアナウンス
+                announceNextStation(stationReadings[currentQuestionIndex + 1]);
+            }
+            
+            // 正解マークと不正解マーク、正解数字マークを非表示
+            const correctMark = document.querySelector('.correct-mark');
+            if (correctMark) {
+                correctMark.classList.remove('show');
+            }
+            const incorrectMark = document.querySelector('.incorrect-mark');
+            if (incorrectMark) {
+                incorrectMark.classList.remove('show');
+            }
+            const answerNumber = document.querySelector('.answer-number');
+            if (answerNumber) {
+                answerNumber.classList.remove('show');
+                answerNumber.classList.remove('correct', 'incorrect');
+            }
+            
+            // ボタンを有効化
+            const buttons = document.querySelectorAll('.number-button');
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+
+        function displayTrains(count) {
+            const container = document.getElementById('trainsContainer');
+            container.innerHTML = '';
+            
+            // 車庫の枠を作成
+            const garageWrapper = document.createElement('div');
+            garageWrapper.className = 'garage-wrapper';
+            
+            // 窓を追加
+            const garageWindows = document.createElement('div');
+            garageWindows.className = 'garage-windows';
+            for (let i = 0; i < 4; i++) {
+                const window = document.createElement('div');
+                window.className = 'garage-window';
+                garageWindows.appendChild(window);
+            }
+            garageWrapper.appendChild(garageWindows);
+            
+            const garageContent = document.createElement('div');
+            garageContent.className = 'garage-content';
+            
+            const trainsPerRow = 5;
+            
+            if (count <= 5) {
+                // 5個以下の場合：下の段に表示、上の段は空きスペース
+                // 上の段（空きスペース5個）
+                const topRow = document.createElement('div');
+                topRow.className = 'train-row';
+                
+                for (let slotIndex = 0; slotIndex < trainsPerRow; slotIndex++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'train-slot empty-slot';
+                    topRow.appendChild(slot);
+                }
+                
+                garageContent.appendChild(topRow);
+                
+                // 下の段（電車を表示）
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'train-row';
+                
+                for (let slotIndex = 0; slotIndex < trainsPerRow; slotIndex++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'train-slot';
+                    
+                    if (slotIndex < count) {
+                        const trainImg = document.createElement('img');
+                        const isLastTrain = slotIndex === count - 1;
+                        
+                        if (isLastTrain) {
+                            trainImg.className = 'train lead-train';
+                            trainImg.src = 'ドクターイエロー先頭車両.png';
+                            trainImg.alt = 'ドクターイエロー先頭車両';
+                        } else {
+                            trainImg.className = 'train';
+                            trainImg.src = 'ドクターイエロー中間車両.png';
+                            trainImg.alt = 'ドクターイエロー中間車両';
+                        }
+                        
+                        slot.appendChild(trainImg);
+                    } else {
+                        slot.className = 'train-slot empty-slot';
+                    }
+                    
+                    bottomRow.appendChild(slot);
+                }
+                
+                garageContent.appendChild(bottomRow);
+            } else {
+                // 6個以上の場合：上の段に残り、下の段に5個
+                const topRowCount = count - trainsPerRow;
+                
+                // 上の段（5個のスペースを常に表示、残りを左詰め）
+                const topRow = document.createElement('div');
+                topRow.className = 'train-row';
+                
+                for (let slotIndex = 0; slotIndex < trainsPerRow; slotIndex++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'train-slot';
+                    
+                    if (slotIndex < topRowCount) {
+                        const trainImg = document.createElement('img');
+                        const isLastInTopRow = slotIndex === topRowCount - 1;
+                        
+                        if (isLastInTopRow) {
+                            trainImg.className = 'train lead-train';
+                            trainImg.src = 'ドクターイエロー先頭車両.png';
+                            trainImg.alt = 'ドクターイエロー先頭車両';
+                        } else {
+                            trainImg.className = 'train';
+                            trainImg.src = 'ドクターイエロー中間車両.png';
+                            trainImg.alt = 'ドクターイエロー中間車両';
+                        }
+                        
+                        slot.appendChild(trainImg);
+                    } else {
+                        slot.className = 'train-slot empty-slot';
+                    }
+                    
+                    topRow.appendChild(slot);
+                }
+                
+                garageContent.appendChild(topRow);
+                
+                // 下の段（5個）
+                const bottomRow = document.createElement('div');
+                bottomRow.className = 'train-row';
+                
+                for (let slotIndex = 0; slotIndex < trainsPerRow; slotIndex++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'train-slot';
+                    
+                    const trainImg = document.createElement('img');
+                    const isRightEndOfBottomRow = slotIndex === trainsPerRow - 1;
+                    
+                    if (isRightEndOfBottomRow) {
+                        trainImg.className = 'train lead-train';
+                        trainImg.src = 'ドクターイエロー先頭車両.png';
+                        trainImg.alt = 'ドクターイエロー先頭車両';
+                    } else {
+                        trainImg.className = 'train';
+                        trainImg.src = 'ドクターイエロー中間車両.png';
+                        trainImg.alt = 'ドクターイエロー中間車両';
+                    }
+                    
+                    slot.appendChild(trainImg);
+                    bottomRow.appendChild(slot);
+                }
+                
+                garageContent.appendChild(bottomRow);
+            }
+            
+            garageWrapper.appendChild(garageContent);
+            container.appendChild(garageWrapper);
+            
+            // 正解マークを車庫の外側に追加
+            const correctMark = document.createElement('div');
+            correctMark.className = 'correct-mark';
+            container.appendChild(correctMark);
+            
+            // 不正解マークを追加
+            const incorrectMark = document.createElement('div');
+            incorrectMark.className = 'incorrect-mark';
+            container.appendChild(incorrectMark);
+            
+            // 正解数字マークを追加
+            const answerNumber = document.createElement('div');
+            answerNumber.className = 'answer-number';
+            container.appendChild(answerNumber);
+        }
+
+        function createNumberButtons() {
+            const container = document.getElementById('buttonsContainer');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 10; i++) {
+                const button = document.createElement('button');
+                button.className = 'number-button';
+                button.textContent = i;
+                button.onclick = () => checkAnswer(i);
+                container.appendChild(button);
+            }
+        }
+
+        function checkAnswer(selectedNumber) {
+            totalCount++;
+            const resultDiv = document.getElementById('result');
+            const buttons = document.querySelectorAll('.number-button');
+            
+            // すべてのボタンを無効化
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // 正解数字マークを表示
+            const answerNumber = document.querySelector('.answer-number');
+            if (answerNumber) {
+                answerNumber.textContent = currentAnswer;
+                answerNumber.classList.add('show');
+            }
+            
+            if (selectedNumber === currentAnswer) {
+                correctCount++;
+                resultDiv.textContent = '';
+                resultDiv.className = 'result';
+                // 正解マークを表示
+                const correctMark = document.querySelector('.correct-mark');
+                if (correctMark) {
+                    correctMark.classList.add('show');
+                }
+                // 正解数字マークを緑色で表示
+                if (answerNumber) {
+                    answerNumber.classList.add('correct');
+                    answerNumber.classList.remove('incorrect');
+                }
+            } else {
+                resultDiv.textContent = '';
+                resultDiv.className = 'result';
+                // 不正解マークを表示
+                const incorrectMark = document.querySelector('.incorrect-mark');
+                if (incorrectMark) {
+                    incorrectMark.classList.add('show');
+                }
+                // 正解数字マークを赤色で表示
+                if (answerNumber) {
+                    answerNumber.classList.add('incorrect');
+                    answerNumber.classList.remove('correct');
+                }
+            }
+            
+            if (selectedNumber === currentAnswer) {
+                // 正解した場合のみ電車を進める
+                // 路線図を更新（電車の位置を保持）
+                updateRouteMap();
+                
+                // 次の問題に進む
+                currentQuestionIndex++;
+                
+                // 電車を次の駅まで移動
+                setTimeout(() => {
+                    moveTrainToNextStation();
+                }, 150);
+                
+                // 六地蔵に到着したら終了
+                if (currentQuestionIndex >= stations.length - 1) {
+                    // 終了メッセージを表示（オプション）
+                    setTimeout(() => {
+                        const resultDiv = document.getElementById('result');
+                        resultDiv.textContent = 'おめでとうございます！六地蔵に到着しました！';
+                        resultDiv.className = 'result correct';
+                    }, 2000);
+                    return;
+                }
+                
+                // 2秒後に自動的に次の問題に進む
+                setTimeout(() => {
+                    generateQuiz();
+                }, 2000);
+            } else {
+                // 不正解の場合は電車を進めず、2秒後に新しい問題を出す
+                setTimeout(() => {
+                    generateQuiz();
+                }, 2000);
+            }
+        }
+
+        // スタートボタンのイベント
+        document.getElementById('startButton').onclick = function() {
+            // スタートボタンを非表示
+            document.getElementById('startButton').style.display = 'none';
+            // クイズコンテンツを表示
+            document.getElementById('quizContent').classList.add('show');
+            // コンテナに白い背景を追加
+            document.querySelector('.container').classList.add('has-quiz-content');
+            // クイズを開始
+            initializeQuestions();
+            createNumberButtons();
+            generateQuiz();
+            updateRouteMap();
+        };
+        
+        function updateRouteMap() {
+            const routeMap = document.getElementById('routeMap');
+            const existingRouteLine = document.getElementById('routeLine');
+            const existingTrain = document.getElementById('trainOnRoute');
+            
+            // 既存の電車の位置を保存
+            let savedTrainLeft = null;
+            if (existingTrain) {
+                savedTrainLeft = existingTrain.style.left;
+            }
+            
+            // 路線図を再作成
+            routeMap.innerHTML = '';
+            
+            const routeLine = document.createElement('div');
+            routeLine.className = 'route-line';
+            routeLine.id = 'routeLine';
+            
+            stations.forEach((stationName, index) => {
+                const station = document.createElement('div');
+                station.className = 'station';
+                station.dataset.index = index;
+                
+                const circle = document.createElement('div');
+                circle.className = 'station-circle';
+                
+                // 現在の問題番号に応じて駅を強調
+                if (index === currentQuestionIndex) {
+                    circle.classList.add('current');
+                } else if (index < currentQuestionIndex) {
+                    circle.classList.add('passed');
+                }
+                
+                const name = document.createElement('div');
+                name.className = 'station-name';
+                name.textContent = stationName;
+                
+                station.appendChild(circle);
+                station.appendChild(name);
+                routeLine.appendChild(station);
+            });
+            
+            routeMap.appendChild(routeLine);
+            
+            // 電車を表示または位置を更新
+            setTimeout(() => {
+                let trainImg = existingTrain;
+                
+                if (!trainImg && currentQuestionIndex < stations.length) {
+                    trainImg = document.createElement('img');
+                    trainImg.className = 'train-on-route';
+                    trainImg.id = 'trainOnRoute';
+                    trainImg.src = 'ドクターイエロー先頭車両.png';
+                    trainImg.alt = 'ドクターイエロー先頭車両';
+                    routeLine.appendChild(trainImg);
+                } else if (trainImg && routeLine !== existingRouteLine) {
+                    // 電車を新しい路線図に移動
+                    routeLine.appendChild(trainImg);
+                }
+                
+                if (trainImg && currentQuestionIndex < stations.length) {
+                    const currentStation = routeLine.children[currentQuestionIndex];
+                    if (currentStation) {
+                        const stationRect = currentStation.getBoundingClientRect();
+                        const routeRect = routeLine.getBoundingClientRect();
+                        const leftPercent = ((stationRect.left + stationRect.width / 2 - routeRect.left) / routeRect.width) * 100;
+                        
+                        // 既存の電車で位置が保存されている場合は、その位置から開始
+                        if (savedTrainLeft && existingTrain) {
+                            trainImg.style.left = savedTrainLeft;
+                            trainImg.style.transition = 'none';
+                        } else {
+                            trainImg.style.left = leftPercent + '%';
+                            trainImg.style.transition = 'none';
+                        }
+                        trainImg.style.top = '-25px';
+                    }
+                }
+            }, 10);
+        }
+
+        function moveTrainToNextStation() {
+            const trainImg = document.getElementById('trainOnRoute');
+            const routeLine = document.getElementById('routeLine');
+            
+            if (!trainImg || !routeLine || currentQuestionIndex >= stations.length) {
+                return;
+            }
+            
+            // 現在の問題番号（既にインクリメント済み）の駅に移動
+            const nextStation = routeLine.children[currentQuestionIndex];
+            if (nextStation) {
+                const routeRect = routeLine.getBoundingClientRect();
+                const nextRect = nextStation.getBoundingClientRect();
+                const nextLeft = ((nextRect.left + nextRect.width / 2 - routeRect.left) / routeRect.width) * 100;
+                
+                // 現在の位置から次の位置へ滑らかに移動
+                trainImg.style.transition = 'left 2s ease-in-out';
+                setTimeout(() => {
+                    trainImg.style.left = nextLeft + '%';
+                }, 50);
+            }
+        }
+
+        function announceNextStation(stationReading) {
+            // Web Speech APIを使用して音声アナウンス
+            if ('speechSynthesis' in window) {
+                // 既存の音声を停止
+                speechSynthesis.cancel();
+                
+                // 最後の駅（ろくじぞう）の場合は特別なアナウンス
+                let announcement;
+                if (stationReading === 'ろくじぞう') {
+                    announcement = 'つぎわしゅうてん、ろくじぞうえきー、ろくじぞうえきー';
+                } else {
+                    // 「つぎわー○○えきー、○○えきー」と駅名を2回読む
+                    announcement = `つぎわー${stationReading}えきー、${stationReading}えきー`;
+                }
+                const utterance = new SpeechSynthesisUtterance(announcement);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.85; // 自然な速度（電車アナウンス風）
+                utterance.pitch = 0.4; // 自然な男性の声のピッチ
+                utterance.volume = 1.0;
+                
+                // より自然な音声を選択
+                const voices = speechSynthesis.getVoices();
+                // 優先順位：Google日本語 > Microsoft日本語 > その他の日本語音声
+                let selectedVoice = voices.find(voice => 
+                    voice.lang.startsWith('ja') && 
+                    voice.name.includes('Google 日本語')
+                ) || voices.find(voice => 
+                    voice.lang.startsWith('ja') && 
+                    voice.name.includes('Microsoft')
+                ) || voices.find(voice => 
+                    voice.lang.startsWith('ja') && 
+                    (voice.name.toLowerCase().includes('male') || voice.name.includes('男'))
+                ) || voices.find(voice => voice.lang.startsWith('ja'));
+                
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+        
+        // 音声リストが読み込まれるまで待つ
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = function() {
+                // 音声リストが読み込まれた
+            };
+        }
+
+        // 新しいクイズボタンのイベント
+        document.getElementById('newQuizButton').onclick = function() {
+            // 最初から開始
+            initializeQuestions();
+            generateQuiz();
+        };
+    </script>
+</body>
+</html>
