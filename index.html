@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ヌマーカステン クイズ</title>
     <style>
         * {
@@ -24,14 +24,16 @@
             align-items: center;
             justify-content: flex-start;
             padding: 20px;
+            overflow-x: auto;
         }
 
         .container {
             background: transparent;
             border-radius: 20px;
             padding: 40px;
-            max-width: 1200px;
-            width: 100%;
+            width: 1200px;
+            min-width: 1200px;
+            margin: 0 auto;
         }
 
         .container.has-quiz-content {
@@ -475,6 +477,33 @@
 
         .quiz-content.show {
             display: block;
+        }
+
+        /* モバイルでもPCと同じ配置で表示（固定幅1200px） */
+        @media screen and (max-width: 1200px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 30px;
+            }
+        }
+
+        /* iPhone向けの最適化 */
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .start-button {
+                font-size: 1.5em;
+                padding: 25px 60px;
+            }
         }
     </style>
 </head>
